@@ -19,7 +19,7 @@ public:
     State state;
     CVector2 base_pos, pos;
     CDegrees deg, target_deg, start_circle_deg, target_field_deg;
-    SandTimer sandTimer_turn, sandTimer_go;
+    SandTimer sandTimer_turn, sandTimer_go, sandTimer_calc;
     int direction = 0;
     double angleDiff, angle;
 };

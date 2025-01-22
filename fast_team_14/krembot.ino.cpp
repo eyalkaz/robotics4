@@ -3,7 +3,7 @@
 
 
 double threshold = 0.35, angle_threshold = 5;
-int count = 0;
+int count = 0, time_before_direction = 10000;
 
 void fast_team_14_controller::setup() {
     krembot.setup();
@@ -13,6 +13,7 @@ void fast_team_14_controller::setup() {
     state = State::go_to_field;
     direction = rand()%4;
     target_field_deg =CDegrees(90*direction);
+    sandTimer_calc.start(time_before_direction);
     
 }
 
@@ -27,10 +28,26 @@ void fast_team_14_controller::loop() {
         state = State::go_to_base;
     }
     switch (state) {
+        case State::try_to_hit: {
+            printf("trying to hit\n");
+            if (krembot.RgbaFront.readRGBA().Blue > 10){
+                drive(100, 0);
+            }
+            else{
+                state = State::search_food;
+            }
+            break;
+        }
         case State::go_to_target_field_deg: {
+            if(sandTimer_calc.finished()){
+                direction = rand()%4;
+                target_field_deg =CDegrees(90*direction);
+                sandTimer_calc.start(time_before_direction);
+            }
+
             angleDiff = (deg - target_field_deg).UnsignedNormalize().GetValue();
             if ((angleDiff > angle_threshold) && angleDiff < (360- angle_threshold)){
-                drive(0, 20);
+                drive(0, 50);
             }
             else{
                 sandTimer_go.start(2000);
@@ -50,30 +67,37 @@ void fast_team_14_controller::loop() {
                 state = State::search_food;
             }
             else{
-                drive(100,0);
+                drive(200,0);
             }
             break;
         }
         case State::search_food: {
-            printf("searching food\n");
+            // printf("searching food\n");
          if(hasFood){
             state = State::go_to_base;
             break;   
          }
-         // change to yellow
-        if (krembot.RgbaFront.readRGBA().Blue > 10){
-            drive(100, 0);
+         if (krembot.RgbaFront.readRGBA().Blue > 5 && krembot.RgbaFront.readRGBA().Green > 5){
+            printf("here1\n");
+            drive(100,0);
             break;
-        }else{
+         }
+
+        // if (krembot.RgbaFront.readRGBA().Blue > 10){
+        //     printf("here2\n");
+        //     state = State::try_to_hit;
+        //     break;
+        // }
+        else{
             angleDiff = (deg - start_circle_deg).UnsignedNormalize().GetValue();
             if (sandTimer_turn.finished() && (angleDiff < angle_threshold) || angleDiff > (360- angle_threshold)){
                 //finished 360 without finding
-                printf("tired of searching\n");
+                // printf("tired of searching\n");
                 state = State::go_to_field;
                 break;
             }
             else{
-                drive(0, 20);
+                drive(0, 50);
             }
         }
             break;
@@ -116,6 +140,7 @@ void fast_team_14_controller::loop() {
                 }
                 else{
                     drive(50,90);
+                    start = true;
                 }
                 
             }
