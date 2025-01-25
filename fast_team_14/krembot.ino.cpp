@@ -8,7 +8,6 @@ int count = 0, time_before_direction = 10000;
 void fast_team_14_controller::setup() {
     krembot.setup();
     writeTeamColor();
-    base_pos = foragingMsg.base1;
     teamName = "fast_team_14_controller";
     state = State::go_to_field;
     direction = rand()%4;
@@ -29,8 +28,7 @@ void fast_team_14_controller::loop() {
     }
     switch (state) {
         case State::try_to_hit: {
-            printf("trying to hit\n");
-            if (krembot.RgbaFront.readRGBA().Blue > 10){
+            if (krembot.RgbaFront.readRGBA().Green > 10){
                 drive(100, 0);
             }
             else{
@@ -67,7 +65,14 @@ void fast_team_14_controller::loop() {
                 state = State::search_food;
             }
             else{
-                drive(200,0);
+                if(krembot.RgbaFront.readRGBA().Distance > 10)
+                {
+                    drive(200,0);
+                }
+                else{
+                   drive(0,90); 
+                }
+
             }
             break;
         }
@@ -77,14 +82,14 @@ void fast_team_14_controller::loop() {
             state = State::go_to_base;
             break;   
          }
-         if (krembot.RgbaFront.readRGBA().Blue > 5 && krembot.RgbaFront.readRGBA().Green > 5){
-            printf("here1\n");
-            drive(100,0);
+         // yellow
+         if (krembot.RgbaFront.readRGBA().Red > 0 && krembot.RgbaFront.readRGBA().Green > 0  && krembot.RgbaFront.readRGBA().Blue < 10){
+            drive(90,0);
             break;
          }
-
-        // if (krembot.RgbaFront.readRGBA().Blue > 10){
-        //     printf("here2\n");
+        
+        // hit
+        // if (krembot.RgbaFront.readRGBA().Green > 5){
         //     state = State::try_to_hit;
         //     break;
         // }
@@ -114,6 +119,13 @@ void fast_team_14_controller::loop() {
             }
             //go_to_base
             if(start){
+                if ((pos - foragingMsg.base1).SquareLength() < (pos - foragingMsg.base2).SquareLength()){
+                    base_pos = foragingMsg.base1;
+                }
+                else{
+                    base_pos = foragingMsg.base2;
+                }
+
                 if(pos.GetX() == base_pos.GetX()){
                     target_deg = CDegrees(180);
                 }
