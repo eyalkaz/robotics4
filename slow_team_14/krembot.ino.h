@@ -1,18 +1,22 @@
 #include <Krembot/controller/krembot_controller.h>
 #include "controllers/foraging/krembot.ino.h"
 
+enum State
+{
+    wander,
+    move_to_target,
+    turn,
+    try_bump,
+    search_food,
+};
+
 class slow_team_14_controller : public foraging_controller
 {
 private:
 public:
     void setup() override;
     void loop() override;
-    enum State
-    {
-        wander,
-        move_to_target,
-        turn,
-    };
+
     State state;
     SandTimer sandTimer;
     CVector2 pos;
